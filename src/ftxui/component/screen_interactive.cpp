@@ -863,6 +863,16 @@ void ScreenInteractive::Draw(Component component) {
   ResetCursorPosition();
   std::cout << ResetPosition(/*clear=*/resized);
 
+  // clear terminal output if screen dimx decreases
+  // only on primary screen
+  // only on POSIX systems (linux/macos)
+#if !defined(_WIN32)
+  if ((dimx < dimx_) && validated_ && !use_alternative_screen_) {
+    std::cout << "\033[J";  // clear
+    std::cout << "\033[H";  // move cursor to home position
+  }
+#endif
+
   // Resize the screen if needed.
   if (resized) {
     dimx_ = dimx;
@@ -929,6 +939,7 @@ void ScreenInteractive::Draw(Component component) {
   std::cout << ToString() << set_cursor_position;
   Flush();
   Clear();
+  validated_ = true;
   frame_valid_ = true;
 }
 
